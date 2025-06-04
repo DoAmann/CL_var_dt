@@ -42,7 +42,7 @@ __global__ void evaluate_n_tot(cuDoubleComplex *psi_conjugate, cuDoubleComplex *
 	double occnum=0.;
 	for(int i=0; i<COMPONENTS; i++)
 	{
-		occnum+=cuCreal(cuCmul(psi_conjugate[ind(i,j,k,l,m+1)],psi[ind(i,j,k,l,m)]));
+		occnum+=cuCreal(cuCmul(psi_conjugate[ind(i,j,k,l,m+1)],psi[ind(i,j,k,l,m)]))*a_x;
 	}
 	
 	average[j*YSIZE*ZSIZE*TAUSIZE+k*ZSIZE*TAUSIZE+l*TAUSIZE+m]=occnum;
@@ -56,7 +56,7 @@ __global__ void evaluate_n_11(cuDoubleComplex *psi_conjugate, cuDoubleComplex *p
 	const int m=int((blockDim.z * blockIdx.z + threadIdx.z)%TAUSIZE);
 		
 	double occnum_11=0.;
-	occnum_11 = cuCreal(cuCmul(psi_conjugate[ind(0,j,k,l,m+1)],psi[ind(0,j,k,l,m)]));
+	occnum_11 = cuCreal(cuCmul(psi_conjugate[ind(0,j,k,l,m+1)],psi[ind(0,j,k,l,m)]))*a_x;
 		
 	average[j*YSIZE*ZSIZE*TAUSIZE+k*ZSIZE*TAUSIZE+l*TAUSIZE+m]=occnum_11;
 }
@@ -69,7 +69,7 @@ __global__ void evaluate_n_12(cuDoubleComplex *psi_conjugate, cuDoubleComplex *p
 	const int m=int((blockDim.z * blockIdx.z + threadIdx.z)%TAUSIZE);
 		
 	double occnum_12=0.;
-	occnum_12 = cuCreal(cuCmul(psi_conjugate[ind(1,j,k,l,m+1)],psi[ind(1,j,k,l,m)]));
+	occnum_12 = cuCreal(cuCmul(psi_conjugate[ind(1,j,k,l,m+1)],psi[ind(1,j,k,l,m)]))*a_x;
 		
 	average[j*YSIZE*ZSIZE*TAUSIZE+k*ZSIZE*TAUSIZE+l*TAUSIZE+m]=occnum_12;
 }
@@ -82,7 +82,7 @@ __global__ void evaluate_n_21(cuDoubleComplex *psi_conjugate, cuDoubleComplex *p
 	const int m=int((blockDim.z * blockIdx.z + threadIdx.z)%TAUSIZE);
 		
 	double occnum_21=0.;
-	occnum_21 = cuCreal(cuCmul(psi_conjugate[ind(2,j,k,l,m+1)],psi[ind(2,j,k,l,m)]));
+	occnum_21 = cuCreal(cuCmul(psi_conjugate[ind(2,j,k,l,m+1)],psi[ind(2,j,k,l,m)]))*a_x;
 		
 	average[j*YSIZE*ZSIZE*TAUSIZE+k*ZSIZE*TAUSIZE+l*TAUSIZE+m]=occnum_21;
 }
@@ -95,7 +95,7 @@ __global__ void evaluate_n_22(cuDoubleComplex *psi_conjugate, cuDoubleComplex *p
 	const int m=int((blockDim.z * blockIdx.z + threadIdx.z)%TAUSIZE);
 		
 	double occnum_22=0.;
-	occnum_22 = cuCreal(cuCmul(psi_conjugate[ind(3,j,k,l,m+1)],psi[ind(3,j,k,l,m)]));
+	occnum_22 = cuCreal(cuCmul(psi_conjugate[ind(3,j,k,l,m+1)],psi[ind(3,j,k,l,m)]))*a_x;
 		
 	average[j*YSIZE*ZSIZE*TAUSIZE+k*ZSIZE*TAUSIZE+l*TAUSIZE+m]=occnum_22;
 }
@@ -546,7 +546,7 @@ __global__ void create_density_grid(cuDoubleComplex *psi_conjugate, cuDoubleComp
 	const int m=int((blockDim.z * blockIdx.z + threadIdx.z)%TAUSIZE);
 	for(int i=0; i<COMPONENTS; i++)
 	{
-		density[ind(i,j,k,l,m)]=cuCmul(psi_conjugate[ind(i,j,k,l,m+1)],psi[ind(i,j,k,l,m)])*a_x;
+		density[ind(i,j,k,l,m)]=cuCmul(psi_conjugate[ind(i,j,k,l,m+1)],psi[ind(i,j,k,l,m)])*make_cuDoubleComplex(a_x,0.0);
 	}
 }
 
