@@ -47,7 +47,7 @@ __global__ void normalization(cuDoubleComplex *data, double factor)
 	data[x]=factor*data[x];
 }
 
-__global__ void set_value(cuDoubleComplex *data, double re_psi, double im_psi, bool conjug)
+__global__ void set_value(cuDoubleComplex *data, double re_psi, double im_psi, bool conjug, double P, double MU)
 {
 	const int j=blockDim.x * blockIdx.x + threadIdx.x;
 	const int k=blockDim.y * blockIdx.y + threadIdx.y;
@@ -57,16 +57,26 @@ __global__ void set_value(cuDoubleComplex *data, double re_psi, double im_psi, b
 	cuDoubleComplex value;
 	if (conjug)
 	{
-		value=make_cuDoubleComplex(re_psi,-im_psi);
+		value=make_cuDoubleComplex(re_psi, -im_psi);
 	}
 	else
 	{
 		value=make_cuDoubleComplex(re_psi,im_psi);
 	}
-	
+	/*
 	for(int i=0; i<COMPONENTS; i++)
 	{
 		data[ind(i,j,k,l,m)]=value;
+	}
+	*/
+	for(int i=0; i<COMPONENTS; i++)
+	{	
+		if (i==0 || i==3){
+		data[ind(i,j,k,l,m)]=value;
+		}
+		else if (i==1||i==2){
+		data[ind(i,j,k,l,m)]=make_cuDoubleComplex(2.0/3.0,0.)*value;
+		}
 	}
 }
 
@@ -78,7 +88,7 @@ class ComplexLattice
 		void fft();
 		void fft_inv();
 		void normalize(double factor);
-		void set_mean_field(double re_psi, double im_psi);
+		void set_mean_field(double re_psi, double im_psi, double P, double MU);
 		void operator *=(ComplexLattice &other);
 		void operator +=(ComplexLattice &other);
 		void operator =(ComplexLattice &other);
@@ -177,10 +187,10 @@ void ComplexLattice::normalize(double factor)
 }
 
 
-void ComplexLattice::set_mean_field(double re_psi, double im_psi)
+void ComplexLattice::set_mean_field(double re_psi, double im_psi, double P, double MU)
 {
 	cudaDeviceSynchronize();
-	set_value<<<dimgrid,dimblock>>>(store,re_psi, im_psi, conjugated);
+	set_value<<<dimgrid,dimblock>>>(store,re_psi, im_psi, conjugated, P, MU);
 	cudaDeviceSynchronize();	
 }
 
