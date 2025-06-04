@@ -5,61 +5,56 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 	const int l=int((blockDim.z * blockIdx.z + threadIdx.z)/TAUSIZE);
 	const int m=int((blockDim.z * blockIdx.z + threadIdx.z)%TAUSIZE);
 
+	cuDoubleComplex tempm_pos=make_cuDoubleComplex(0.,0.);
+	cuDoubleComplex tempp_pos=make_cuDoubleComplex(0.,0.);
 	cuDoubleComplex tempm_0=make_cuDoubleComplex(0.,0.);
 	cuDoubleComplex tempp_0=make_cuDoubleComplex(0.,0.);
-	cuDoubleComplex tempm_1=make_cuDoubleComplex(0.,0.);
-	cuDoubleComplex tempp_1=make_cuDoubleComplex(0.,0.);
-	cuDoubleComplex tempm_2=make_cuDoubleComplex(0.,0.);
-	cuDoubleComplex tempp_2=make_cuDoubleComplex(0.,0.);
-	cuDoubleComplex tempm_3=make_cuDoubleComplex(0.,0.);
-	cuDoubleComplex tempp_3=make_cuDoubleComplex(0.,0.);
+	cuDoubleComplex tempm_neg=make_cuDoubleComplex(0.,0.);
+	cuDoubleComplex tempp_neg=make_cuDoubleComplex(0.,0.);
+	cuDoubleComplex tempm_eta=make_cuDoubleComplex(0.,0.);
+	cuDoubleComplex tempp_eta=make_cuDoubleComplex(0.,0.);
 	cuDoubleComplex term_p= make_cuDoubleComplex(0.,0.);
 	cuDoubleComplex term_i= make_cuDoubleComplex(0.,0.);
 	cuDoubleComplex term_param= make_cuDoubleComplex(0.,0.);
 	cuDoubleComplex term_inter= make_cuDoubleComplex(0.,0.);
 
-	cuDoubleComplex N_11, N_12, N_21, N_22;
-	cuDoubleComplex N_11_conjug, N_12_conjug, N_21_conjug, N_22_conjug;
+	cuDoubleComplex N_pos, N_0, N_neg, N_eta;
+	cuDoubleComplex N_pos_conjug, N_0_conjug, N_neg_conjug, N_eta_conjug;
 
-	N_11 = psi[ind(0,j,k,l,m-1)] *psi_conjug[ind(0,j,k,l,m)];
-	N_12 = psi[ind(1,j,k,l,m-1)] *psi_conjug[ind(1,j,k,l,m)];
-	N_21 = psi[ind(2,j,k,l,m-1)] *psi_conjug[ind(2,j,k,l,m)];
-	N_22 = psi[ind(3,j,k,l,m-1)] *psi_conjug[ind(3,j,k,l,m)];
+	//calculating drift with physical components (Psi_pos, Psi_0, Psi_neg und eta_0)
 
-	N_11_conjug = psi[ind(0,j,k,l,m)] *psi_conjug[ind(0,j,k,l,m+1)];
-	N_12_conjug = psi[ind(1,j,k,l,m)] *psi_conjug[ind(1,j,k,l,m+1)];
-	N_21_conjug = psi[ind(2,j,k,l,m)] *psi_conjug[ind(2,j,k,l,m+1)];
-	N_22_conjug = psi[ind(3,j,k,l,m)] *psi_conjug[ind(3,j,k,l,m+1)];
 
-	// define psi_0 = psi_11, psi_1 = psi_12, psi_2 = psi_21, psi_3 = psi_22
-	tempm_0 = (N_11 + N_12 + N_21) *psi[ind(0,j,k,l,m-1)]
-				+(psi[ind(1,j,k,l,m-1)] *psi_conjug[ind(3,j,k,l,m)])*psi[ind(2,j,k,l,m-1)];
+	N_pos = psi[ind(0,j,k,l,m-1)] *psi_conjug[ind(0,j,k,l,m)];
+	N_0 = psi[ind(1,j,k,l,m-1)] *psi_conjug[ind(1,j,k,l,m)];
+	N_neg = psi[ind(2,j,k,l,m-1)] *psi_conjug[ind(2,j,k,l,m)];
+	N_eta = psi[ind(3,j,k,l,m-1)] *psi_conjug[ind(3,j,k,l,m)];
 
-	tempm_1 = (N_11 + N_12 + N_22)*psi[ind(1,j,k,l,m-1)]
-				+(psi[ind(0,j,k,l,m-1)] *psi_conjug[ind(2,j,k,l,m)]) *psi[ind(3,j,k,l,m-1)];
+	N_pos_conjug = psi[ind(0,j,k,l,m)] *psi_conjug[ind(0,j,k,l,m+1)];
+	N_0_conjug = psi[ind(1,j,k,l,m)] *psi_conjug[ind(1,j,k,l,m+1)];
+	N_neg_conjug = psi[ind(2,j,k,l,m)] *psi_conjug[ind(2,j,k,l,m+1)];
+	N_eta_conjug = psi[ind(3,j,k,l,m)] *psi_conjug[ind(3,j,k,l,m+1)];
 
-	tempm_2 = (N_11 + N_21 + N_22) *psi[ind(2,j,k,l,m-1)]
-				+(psi[ind(3,j,k,l,m-1)] *psi_conjug[ind(1,j,k,l,m)]) *psi[ind(0,j,k,l,m-1)];
+	// define interaction terms
+	tempm_pos = (N_pos + N_0 + N_eta) *psi[ind(0,j,k,l,m-1)]
+				+0.5*(psi[ind(1,j,k,l,m-1)] *psi[ind(1,j,k,l,m-1)] - psi[ind(3,j,k,l,m-1)] *psi[ind(3,j,k,l,m-1)])*psi_conjug[ind(2,j,k,l,m)];
+	tempp_pos = (N_pos_conjug + N_0_conjug + N_eta_conjug) *psi_conjug[ind(0,j,k,l,m+1)]
+				+0.5*(psi_conjug[ind(1,j,k,l,m+1)] *psi_conjug[ind(1,j,k,l,m+1)] - psi_conjug[ind(3,j,k,l,m+1)] *psi_conjug[ind(3,j,k,l,m+1)])*psi[ind(2,j,k,l,m+1)];
+	tempm_neg = (N_neg + N_0 + N_eta) *psi[ind(2,j,k,l,m-1)]
+				+0.5*(psi[ind(1,j,k,l,m-1)] *psi[ind(1,j,k,l,m-1)] - psi[ind(3,j,k,l,m-1)] *psi[ind(3,j,k,l,m-1)])*psi_conjug[ind(0,j,k,l,m)];
+	tempp_neg = (N_neg_conjug + N_0_conjug + N_eta_conjug) *psi_conjug[ind(2,j,k,l,m+1)]
+				+0.5*(psi_conjug[ind(1,j,k,l,m+1)] *psi_conjug[ind(1,j,k,l,m+1)] - psi_conjug[ind(3,j,k,l,m+1)] *psi_conjug[ind(3,j,k,l,m+1)])*psi[ind(0,j,k,l,m)];
+	tempm_0 = 0.5*(2.0*N_pos + 2.0*N_neg + N_eta + N_0) *psi[ind(1,j,k,l,m-1)] + psi[ind(0,j,k,l,m-1)] *psi[ind(2,j,k,l,m-1)] *psi_conjug[ind(1,j,k,l,m)]
+				+(psi_conjug[ind(3,j,k,l,m)] *psi[ind(1,j,k,l,m-1)] + psi_conjug[ind(1,j,k,l,m)] *psi[ind(3,j,k,l,m-1)])*psi[ind(3,j,k,l,m-1)];
+	tempp_0 = 0.5*(2.0*N_pos_conjug + 2.0*N_neg_conjug + N_eta_conjug + N_0_conjug) *psi_conjug[ind(1,j,k,l,m+1)] + psi_conjug[ind(0,j,k,l,m+1)] *psi_conjug[ind(2,j,k,l,m+1)] *psi[ind(1,j,k,l,m)]
+				+(psi[ind(3,j,k,l,m)] *psi_conjug[ind(1,j,k,l,m+1)] + psi[ind(1,j,k,l,m)] *psi_conjug[ind(3,j,k,l,m+1)])*psi_comjug[ind(3,j,k,l,m+1)];
+	tempm_eta = 0.5*(2.0*N_pos + 2.0*N_neg + N_eta + N_0) *psi[ind(3,j,k,l,m-1)] - psi[ind(0,j,k,l,m-1)] *psi[ind(2,j,k,l,m-1)] *psi_conjug[ind(3,j,k,l,m)]
+				+(psi_conjug[ind(1,j,k,l,m)] *psi[ind(3,j,k,l,m-1)] + psi_conjug[ind(3,j,k,l,m)] *psi[ind(1,j,k,l,m-1)])*psi[ind(1,j,k,l,m-1)];
+	tempp_eta = 0.5*(2.0*N_pos_conjug + 2.0*N_neg_conjug + N_eta_conjug + N_0_conjug) *psi_conjug[ind(3,j,k,l,m+1)] - psi_conjug[ind(0,j,k,l,m+1)] *psi_conjug[ind(2,j,k,l,m+1)] *psi[ind(3,j,k,l,m)]
+				+(psi[ind(1,j,k,l,m)] *psi_conjug[ind(3,j,k,l,m+1)] + psi[ind(3,j,k,l,m)] *psi_conjug[ind(1,j,k,l,m+1)])*psi_conjug[ind(1,j,k,l,m+1)];
 
-	tempm_3 = (N_12 + N_21 + N_22) *psi[ind(3,j,k,l,m-1)]
-				+(psi[ind(2,j,k,l,m-1)] *psi_conjug[ind(0,j,k,l,m)]) *psi[ind(1,j,k,l,m-1)];
-
-	tempp_0 = (N_11_conjug + N_12_conjug + N_21_conjug) *psi_conjug[ind(0,j,k,l,m+1)]
-				+psi_conjug[ind(1,j,k,l,m+1)] *psi[ind(3,j,k,l,m)] *psi_conjug[ind(2,j,k,l,m+1)];
-
-	tempp_1 = (N_11_conjug + N_12_conjug + N_22_conjug) *psi_conjug[ind(1,j,k,l,m+1)]
-				+psi_conjug[ind(0,j,k,l,m+1)] *psi[ind(2,j,k,l,m)] *psi_conjug[ind(3,j,k,l,m+1)];//hier auch ein conjug?
-
-	tempp_2 = (N_11_conjug + N_21_conjug + N_22_conjug) *psi_conjug[ind(2,j,k,l,m+1)]
-				+psi_conjug[ind(3,j,k,l,m+1)] *psi[ind(1,j,k,l,m)] *psi_conjug[ind(0,j,k,l,m+1)];
-
-	tempp_3 = (N_12_conjug + N_21_conjug + N_22_conjug) *psi_conjug[ind(3,j,k,l,m+1)]
-				+psi_conjug[ind(2,j,k,l,m+1)] *psi[ind(0,j,k,l,m)] *psi_conjug[ind(1,j,k,l,m+1)];
-
-	
 	double V=0;
 
-		// i = 0
+	// i = 0
 		{
 			cuDoubleComplex term_param = term_p + (MU - V + P + Q) * psi[ind(0,j,k,l,m-1)];
 			cuDoubleComplex term_inter = term_i -  2 * G * tempm_0;
@@ -95,14 +90,14 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 
 		// i = 2
 		{
-			cuDoubleComplex term_param = term_p + (MU - V) * psi[ind(2,j,k,l,m-1)];
+			cuDoubleComplex term_param = term_p + (MU - V - P + Q) * psi[ind(2,j,k,l,m-1)];
 			cuDoubleComplex term_inter = term_i -  2 * G * tempm_2;
 			drift[ind(2,j,k,l,m)] = a_x * factor * (
 				psi[ind(2,j,k,l,m-1)] - psi[ind(2,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin[ind(2,j,k,l,m-1)])
 			);
 
-			term_param = term_p + (MU - V) * psi[ind(2,j,k,l,m+1)];
+			term_param = term_p + (MU - V - P + Q) * psi[ind(2,j,k,l,m+1)];
 			term_inter = term_i -  2 * G * tempp_2;
 			drift_conjug[ind(2,j,k,l,m)] = a_x * factor * (
 				psi_conjug[ind(2,j,k,l,m+1)] - psi_conjug[ind(2,j,k,l,m)]
@@ -112,14 +107,14 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 
 		// i = 3
 		{
-			cuDoubleComplex term_param = term_p + (MU - V - P + Q) * psi[ind(3,j,k,l,m-1)];
+			cuDoubleComplex term_param = term_p + (MU - V) * psi[ind(3,j,k,l,m-1)];
 			cuDoubleComplex term_inter = term_i -  2 * G * tempm_3;
 			drift[ind(3,j,k,l,m)] = a_x * factor * (
 				psi[ind(3,j,k,l,m-1)] - psi[ind(3,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin[ind(3,j,k,l,m-1)])
 			);
 
-			term_param = term_p + (MU - V - P + Q) * psi[ind(3,j,k,l,m+1)];
+			term_param = term_p + (MU - V) * psi[ind(3,j,k,l,m+1)];
 			term_inter = term_i -  2 * G * tempp_3;
 			drift_conjug[ind(3,j,k,l,m)] = a_x * factor * (
 				psi_conjug[ind(3,j,k,l,m+1)] - psi_conjug[ind(3,j,k,l,m)]

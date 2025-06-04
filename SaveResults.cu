@@ -253,6 +253,13 @@ void SaveResults::save_snapshot(double P, double MU)
 		str_to_append = str_to_append + "\t\t";
 	}
 
+	if(which.dt_new){
+		str_to_append = str_to_append + to_string(*propagator.dt_new) + "\t";
+	}
+	else{
+		str_to_append = str_to_append + "\t\t";
+	}
+
 	output << str_to_append << endl;
 
 

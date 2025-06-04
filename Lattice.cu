@@ -75,7 +75,7 @@ __global__ void set_value(cuDoubleComplex *data, double re_psi, double im_psi, b
 		data[ind(i,j,k,l,m)]=value;
 		}
 		else if (i==1||i==2){
-		data[ind(i,j,k,l,m)]=make_cuDoubleComplex(2.0/3.0,0.)*value;
+		data[ind(i,j,k,l,m)]=make_cuDoubleComplex(sqrt(2.0/3.0),0.)*value;
 		}
 	}
 }

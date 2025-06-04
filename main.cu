@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 	which.density_tot=false; which.density_11=false; which.density_12=false; which.density_21=false; which.density_22=false;
 	which.F_x=true; which.F_y = true; which.F_z=true;
 	which.spectrum_tot=false;
-	which.drift=false;
+	which.drift=false;; which.dt_new=true;
 	which.max_momentum= M_PI * sqrt(2.0);
 	which.bins=284;
 	which.min_drift=0.;
