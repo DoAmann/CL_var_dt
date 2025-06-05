@@ -22,7 +22,7 @@ bool folder_exists(string foldername)
 class SaveResults
 {
 	public:
-		SaveResults(Observables *observables, unsigned long long seedval);
+		SaveResults(Observables *observables, Propagator* prop, unsigned long long seedval);
 		bool make_directory(double P, double MU);
 		bool make_directory(string dirname);
 		bool make_directory_rawdata();
@@ -39,13 +39,15 @@ class SaveResults
 		string directory;
 		string directory_rawdata;
 		unsigned long long seedvalue;
+		Propagator *propagator;
 };
 
-SaveResults::SaveResults(Observables *observables, unsigned long long seedval)
+SaveResults::SaveResults(Observables* observables, Propagator* prop, unsigned long long seedval)
 {
-	obs=observables;
-	which=obs->get_which();
-	seedvalue=seedval;
+	obs = observables;
+	propagator = prop;         // <-- new!
+	which = obs->get_which();
+	seedvalue = seedval;
 }
 
 
@@ -253,8 +255,8 @@ void SaveResults::save_snapshot(double P, double MU)
 		str_to_append = str_to_append + "\t\t";
 	}
 
-	if(which.dt_new){
-		str_to_append = str_to_append + to_string(*propagator.dt_new) + "\t";
+	if(which.timeStepSize){
+		str_to_append = str_to_append + to_string(*propagator->dt_new) + "\t";
 	}
 	else{
 		str_to_append = str_to_append + "\t\t";
