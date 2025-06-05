@@ -20,7 +20,7 @@ struct which_observables{
 	bool F_x;					//F_x = tr{Psi^dagger \sigma_x Psi}
 	bool F_y;					//F_y = tr{Psi^dagger \sigma_y Psi}
 	bool F_z;					//F_z = tr{Psi^dagger \sigma_z Psi}
-	
+	bool timeStepSize;
 	bool drift;					//histogram of drift magnitude, needed for checking correctness of CL
 	double min_drift;
 	double max_drift;
