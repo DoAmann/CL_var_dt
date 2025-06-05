@@ -68,9 +68,9 @@ int main(int argc, char** argv)
 	which.dd=false;
 	which.anomalous_spectrum=false;
 	which.density_tot=false; which.density_11=false; which.density_12=false; which.density_21=false; which.density_22=false;
-	which.F_x=true; which.F_y = true; which.F_z=true;
+	which.F_x=false; which.F_y = false; which.F_z=false;
 	which.spectrum_tot=false;
-	which.drift=false;; which.dt_new=true;
+	which.drift=false;; which.timeStepSize=true;
 	which.max_momentum= M_PI * sqrt(2.0);
 	which.bins=284;
 	which.min_drift=0.;
@@ -103,7 +103,7 @@ unsigned long long seedvalue2 = static_cast<unsigned long long>(params["seed2"])
 	Propagator *prop=new Propagator(fields,fields_conjug,drift,drift_conjug,seedvalue, seedvalue2);
 	Observables *obs=new Observables(fields,fields_conjug,which);
 	
-	SaveResults * save= new SaveResults(obs,seedvalue);
+	SaveResults* save = new SaveResults(obs, prop, seedvalue);
 	if(!save->make_directory(P, MU)){
 		return 1;
 	}
@@ -114,13 +114,13 @@ unsigned long long seedvalue2 = static_cast<unsigned long long>(params["seed2"])
 
 	if(mf)
 	{
-	    fields->set_mean_field(sqrt(abs(MU)/G/COMPONENTS),0.);
-	    fields_conjug->set_mean_field(sqrt(abs(MU)/G/COMPONENTS),0.);
+	    fields->set_mean_field(sqrt((abs(MU)+abs(P))/G/COMPONENTS),0., P, MU);
+	    fields_conjug->set_mean_field(sqrt((abs(MU)+abs(P))/G/COMPONENTS),0., P, MU);
 	}
 	else
 	{
-	    fields->set_mean_field(0.,0.);
-	    fields_conjug->set_mean_field(0.,0.);
+	    fields->set_mean_field(sqrt(600.0/XSIZE),0., P, MU);
+	    fields_conjug->set_mean_field(sqrt(600.0/XSIZE),0., P, MU);
 	}
 
 	
