@@ -71,11 +71,11 @@ __global__ void set_value(cuDoubleComplex *data, double re_psi, double im_psi, b
 	*/
 	for(int i=0; i<COMPONENTS; i++)
 	{	
-		if (i==0 || i==3){
+		if (i==0 || i==2){
 		data[ind(i,j,k,l,m)]=value;
 		}
-		else if (i==1||i==2){
-		data[ind(i,j,k,l,m)]=make_cuDoubleComplex(sqrt(2.0/3.0),0.)*value;
+		else if (i==1||i==3){
+		data[ind(i,j,k,l,m)]=make_cuDoubleComplex(sqrt(2.5/3.0),0.)*value;
 		}
 	}
 }
