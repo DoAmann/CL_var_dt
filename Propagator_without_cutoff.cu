@@ -38,7 +38,7 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 	tempm_pos = (N_pos + N_0 + N_eta) *psi[ind(0,j,k,l,m-1)]
 				+0.5*(psi[ind(1,j,k,l,m-1)] *psi[ind(1,j,k,l,m-1)] - psi[ind(3,j,k,l,m-1)] *psi[ind(3,j,k,l,m-1)])*psi_conjug[ind(2,j,k,l,m)];
 	tempp_pos = (N_pos_conjug + N_0_conjug + N_eta_conjug) *psi_conjug[ind(0,j,k,l,m+1)]
-				+0.5*(psi_conjug[ind(1,j,k,l,m+1)] *psi_conjug[ind(1,j,k,l,m+1)] - psi_conjug[ind(3,j,k,l,m+1)] *psi_conjug[ind(3,j,k,l,m+1)])*psi[ind(2,j,k,l,m+1)];
+				+0.5*(psi_conjug[ind(1,j,k,l,m+1)] *psi_conjug[ind(1,j,k,l,m+1)] - psi_conjug[ind(3,j,k,l,m+1)] *psi_conjug[ind(3,j,k,l,m+1)])*psi[ind(2,j,k,l,m)];
 	tempm_neg = (N_neg + N_0 + N_eta) *psi[ind(2,j,k,l,m-1)]
 				+0.5*(psi[ind(1,j,k,l,m-1)] *psi[ind(1,j,k,l,m-1)] - psi[ind(3,j,k,l,m-1)] *psi[ind(3,j,k,l,m-1)])*psi_conjug[ind(0,j,k,l,m)];
 	tempp_neg = (N_neg_conjug + N_0_conjug + N_eta_conjug) *psi_conjug[ind(2,j,k,l,m+1)]
@@ -46,7 +46,7 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 	tempm_0 = 0.5*(2.0*N_pos + 2.0*N_neg + N_eta + N_0) *psi[ind(1,j,k,l,m-1)] + psi[ind(0,j,k,l,m-1)] *psi[ind(2,j,k,l,m-1)] *psi_conjug[ind(1,j,k,l,m)]
 				+(psi_conjug[ind(3,j,k,l,m)] *psi[ind(1,j,k,l,m-1)] + psi_conjug[ind(1,j,k,l,m)] *psi[ind(3,j,k,l,m-1)])*psi[ind(3,j,k,l,m-1)];
 	tempp_0 = 0.5*(2.0*N_pos_conjug + 2.0*N_neg_conjug + N_eta_conjug + N_0_conjug) *psi_conjug[ind(1,j,k,l,m+1)] + psi_conjug[ind(0,j,k,l,m+1)] *psi_conjug[ind(2,j,k,l,m+1)] *psi[ind(1,j,k,l,m)]
-				+(psi[ind(3,j,k,l,m)] *psi_conjug[ind(1,j,k,l,m+1)] + psi[ind(1,j,k,l,m)] *psi_conjug[ind(3,j,k,l,m+1)])*psi_comjug[ind(3,j,k,l,m+1)];
+				+(psi[ind(3,j,k,l,m)] *psi_conjug[ind(1,j,k,l,m+1)] + psi[ind(1,j,k,l,m)] *psi_conjug[ind(3,j,k,l,m+1)])*psi_conjug[ind(3,j,k,l,m+1)];
 	tempm_eta = 0.5*(2.0*N_pos + 2.0*N_neg + N_eta + N_0) *psi[ind(3,j,k,l,m-1)] - psi[ind(0,j,k,l,m-1)] *psi[ind(2,j,k,l,m-1)] *psi_conjug[ind(3,j,k,l,m)]
 				+(psi_conjug[ind(1,j,k,l,m)] *psi[ind(3,j,k,l,m-1)] + psi_conjug[ind(3,j,k,l,m)] *psi[ind(1,j,k,l,m-1)])*psi[ind(1,j,k,l,m-1)];
 	tempp_eta = 0.5*(2.0*N_pos_conjug + 2.0*N_neg_conjug + N_eta_conjug + N_0_conjug) *psi_conjug[ind(3,j,k,l,m+1)] - psi_conjug[ind(0,j,k,l,m+1)] *psi_conjug[ind(2,j,k,l,m+1)] *psi[ind(3,j,k,l,m)]
@@ -57,14 +57,14 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 	// i = 0
 		{
 			cuDoubleComplex term_param = term_p + (MU - V + P + Q) * psi[ind(0,j,k,l,m-1)];
-			cuDoubleComplex term_inter = term_i -  2 * G * tempm_0;
+			cuDoubleComplex term_inter = term_i -  2 * G * tempm_pos;
 			drift[ind(0,j,k,l,m)] = a_x * factor * (
 				psi[ind(0,j,k,l,m-1)] - psi[ind(0,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin[ind(0,j,k,l,m-1)])
 			);
 
 			term_param = term_p + (MU - V + P + Q) * psi[ind(0,j,k,l,m+1)];
-			term_inter = term_i -  2 * G * tempp_0;
+			term_inter = term_i -  2 * G * tempp_pos;
 			drift_conjug[ind(0,j,k,l,m)] = a_x * factor * (
 				psi_conjug[ind(0,j,k,l,m+1)] - psi_conjug[ind(0,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin_conjug[ind(0,j,k,l,m+1)])
@@ -74,14 +74,14 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 		// i = 1
 		{
 			cuDoubleComplex term_param = term_p + (MU - V) * psi[ind(1,j,k,l,m-1)];
-			cuDoubleComplex term_inter = term_i -  2 * G * tempm_1;
+			cuDoubleComplex term_inter = term_i -  2 * G * tempm_0;
 			drift[ind(1,j,k,l,m)] = a_x * factor * (
 				psi[ind(1,j,k,l,m-1)] - psi[ind(1,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin[ind(1,j,k,l,m-1)])
 			);
 
 			term_param = term_p + (MU - V) * psi[ind(1,j,k,l,m+1)];
-			term_inter = term_i -  2 * G * tempp_1;
+			term_inter = term_i -  2 * G * tempp_0;
 			drift_conjug[ind(1,j,k,l,m)] = a_x * factor * (
 				psi_conjug[ind(1,j,k,l,m+1)] - psi_conjug[ind(1,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin_conjug[ind(1,j,k,l,m+1)])
@@ -91,14 +91,14 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 		// i = 2
 		{
 			cuDoubleComplex term_param = term_p + (MU - V - P + Q) * psi[ind(2,j,k,l,m-1)];
-			cuDoubleComplex term_inter = term_i -  2 * G * tempm_2;
+			cuDoubleComplex term_inter = term_i -  2 * G * tempm_neg;
 			drift[ind(2,j,k,l,m)] = a_x * factor * (
 				psi[ind(2,j,k,l,m-1)] - psi[ind(2,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin[ind(2,j,k,l,m-1)])
 			);
 
 			term_param = term_p + (MU - V - P + Q) * psi[ind(2,j,k,l,m+1)];
-			term_inter = term_i -  2 * G * tempp_2;
+			term_inter = term_i -  2 * G * tempp_neg;
 			drift_conjug[ind(2,j,k,l,m)] = a_x * factor * (
 				psi_conjug[ind(2,j,k,l,m+1)] - psi_conjug[ind(2,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin_conjug[ind(2,j,k,l,m+1)])
@@ -108,14 +108,14 @@ __global__ void calculate_drift_without_noise(cuDoubleComplex *psi, cuDoubleComp
 		// i = 3
 		{
 			cuDoubleComplex term_param = term_p + (MU - V) * psi[ind(3,j,k,l,m-1)];
-			cuDoubleComplex term_inter = term_i -  2 * G * tempm_3;
+			cuDoubleComplex term_inter = term_i -  2 * G * tempm_eta;
 			drift[ind(3,j,k,l,m)] = a_x * factor * (
 				psi[ind(3,j,k,l,m-1)] - psi[ind(3,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin[ind(3,j,k,l,m-1)])
 			);
 
 			term_param = term_p + (MU - V) * psi[ind(3,j,k,l,m+1)];
-			term_inter = term_i -  2 * G * tempp_3;
+			term_inter = term_i -  2 * G * tempp_eta;
 			drift_conjug[ind(3,j,k,l,m)] = a_x * factor * (
 				psi_conjug[ind(3,j,k,l,m+1)] - psi_conjug[ind(3,j,k,l,m)]
 				+ EPS * (term_param + term_inter + kin_conjug[ind(3,j,k,l,m+1)])
@@ -268,11 +268,11 @@ class Propagator{
 		void propagate_without_noise(double factor, double P, double MU);
 		void get_max_and_mean_drift(double *max_drift, double *mean_drift);
 		void compute_new_dt(double mean_drift, double max_drift, double *dt_new);
+		double *dt_new;
 	private:
 		ComplexLattice *fields, *fields_conjug;
 		ComplexLattice *drift, *drift_conjug;
 		ComplexLattice *kin, *kin_conjug;
-		double *dt_new;
 		dim3 dimblock;
 		dim3 dimgrid;
 		curandGenerator_t gen;
@@ -347,31 +347,45 @@ void Propagator::get_max_and_mean_drift(double *max_drift, double *mean_drift)
 {
     int total_size = COMPONENTS * XSIZE * YSIZE * ZSIZE * TAUSIZE;
     double *d_max, *d_sum;
+    double *d_max_conjug, *d_sum_conjug;
 
     // Allocate device memory
     cudaMalloc(&d_max, sizeof(double));
     cudaMalloc(&d_sum, sizeof(double));
+    cudaMalloc(&d_max_conjug, sizeof(double));
+    cudaMalloc(&d_sum_conjug, sizeof(double));
+
     cudaMemset(d_max, 0, sizeof(double));
     cudaMemset(d_sum, 0, sizeof(double));
+    cudaMemset(d_max_conjug, 0, sizeof(double));
+    cudaMemset(d_sum_conjug, 0, sizeof(double));
 
-    // Launch kernel to compute max and mean drift
+    // Launch kernel for both drift and drift_conjug
     int blockSize = dimblock.x * dimblock.y * dimblock.z;
     int gridSize = dimgrid.x * dimgrid.y * dimgrid.z;
+
     compute_max_and_mean_drift<<<gridSize, blockSize, 2 * blockSize * sizeof(double)>>>(
         drift->get_pointer(), total_size, d_max, d_sum);
 
+    compute_max_and_mean_drift<<<gridSize, blockSize, 2 * blockSize * sizeof(double)>>>(
+        drift_conjug->get_pointer(), total_size, d_max_conjug, d_sum_conjug);
+
     // Copy results back to host
-    double h_max, h_sum;
+    double h_max, h_sum, h_max_conjug, h_sum_conjug;
     cudaMemcpy(&h_max, d_max, sizeof(double), cudaMemcpyDeviceToHost);
     cudaMemcpy(&h_sum, d_sum, sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&h_max_conjug, d_max_conjug, sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&h_sum_conjug, d_sum_conjug, sizeof(double), cudaMemcpyDeviceToHost);
 
-    // Assign results to output pointers
-    *max_drift = h_max;  // Dereference max_drift
-    *mean_drift = h_sum / total_size;  // Dereference mean_drift
+    // Assign results
+    *max_drift = 0.5 * (h_max + h_max_conjug);
+    *mean_drift = 0.5 * (h_sum + h_sum_conjug) / total_size;
 
     // Free device memory
     cudaFree(d_max);
     cudaFree(d_sum);
+    cudaFree(d_max_conjug);
+    cudaFree(d_sum_conjug);
 }
 
 void Propagator::compute_new_dt(double mean_drift, double max_drift, double *dt_new)
@@ -394,7 +408,7 @@ void Propagator::compute_new_dt(double mean_drift, double max_drift, double *dt_
 		cout << "dt_new is too large, setting to max_dt: " << max_dt << endl;
 	}
 
-    double alpha = 0.9;
+    double alpha = 0.95;
     *dt_new = (1 - alpha) * DT + alpha * (*dt_new);
 }
 
